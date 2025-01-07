@@ -78,7 +78,7 @@ find_package(LAPACK REQUIRED)
 
 # Set relevant properties
 set(BUILD_TESTING OFF)          # Avoid building faiss tests
-set(FAISS_ENABLE_GPU OFF)
+set(FAISS_ENABLE_GPU ON)
 set(FAISS_ENABLE_PYTHON OFF)
 
 if(NOT DEFINED AVX2_ENABLED)

@@ -106,15 +106,15 @@ public class NativeEngines990KnnVectorsWriter extends KnnVectorsWriter {
             final QuantizationState quantizationState = train(field.getFieldInfo(), knnVectorValuesSupplier, totalLiveDocs);
             // Check only after quantization state writer finish writing its state, since it is required
             // even if there are no graph files in segment, which will be later used by exact search
-            if (shouldSkipBuildingVectorDataStructure(totalLiveDocs)) {
-                log.info(
-                    "Skip building vector data structure for field: {}, as liveDoc: {} is less than the threshold {} during flush",
-                    fieldInfo.name,
-                    totalLiveDocs,
-                    approximateThreshold
-                );
-                continue;
-            }
+//            if (shouldSkipBuildingVectorDataStructure(totalLiveDocs)) {
+//                log.info(
+//                    "Skip building vector data structure for field: {}, as liveDoc: {} is less than the threshold {} during flush",
+//                    fieldInfo.name,
+//                    totalLiveDocs,
+//                    approximateThreshold
+//                );
+//                continue;
+//            }
             final NativeIndexWriter writer = NativeIndexWriter.getWriter(fieldInfo, segmentWriteState, quantizationState);
             final KNNVectorValues<?> knnVectorValues = knnVectorValuesSupplier.get();
 

@@ -23,6 +23,8 @@
 #include <vector>
 #include <memory>
 #include <type_traits>
+#include <iostream>
+#include <cuda_runtime.h>
 
 namespace knn_jni {
 namespace faiss_wrapper {
@@ -82,6 +84,17 @@ jlong IndexService::initIndex(
         int threadCount,
         std::unordered_map<std::string, jobject> parameters
     ) {
+
+    std::cout << "***** Hello the Hack for GPU *****" << std::endl;
+    int runtimeVersion = 0;
+    cudaError_t err = cudaRuntimeGetVersion(&runtimeVersion);
+    std::cout << "Failed to get CUDA runtime version: " << cudaGetErrorString(err) << std::endl;
+    // Print the versions
+    std::cout << "CUDA Runtime Version: " << runtimeVersion / 1000 << "."
+              << (runtimeVersion % 1000) / 10 << "."
+              << runtimeVersion % 10 << std::endl;
+    std::cout << "***** Done to print out CUDA runtime version *****" << std::endl;
+
     // Create index using Faiss factory method
     std::unique_ptr<faiss::Index> index(faissMethods->indexFactory(dim, indexDescription.c_str(), metric));
 
