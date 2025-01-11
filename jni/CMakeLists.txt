@@ -114,13 +114,13 @@ if (${CONFIG_FAISS} STREQUAL ON OR ${CONFIG_ALL} STREQUAL ON OR ${CONFIG_TEST} S
         ${CMAKE_CURRENT_SOURCE_DIR}/src/faiss_index_service.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/faiss_methods.cpp
     )
-    find_package(CUDAToolkit REQUIRED)
-    target_link_libraries(${TARGET_LIB_FAISS} ${TARGET_LINK_FAISS_LIB} ${TARGET_LIB_UTIL} CUDA::cudart CUDA::cublas OpenMP::OpenMP_CXX)
+    target_link_libraries(${TARGET_LIB_FAISS} ${TARGET_LINK_FAISS_LIB} ${TARGET_LIB_UTIL} /usr/local/nvidia/lib64/libcuda.so OpenMP::OpenMP_CXX)
     target_include_directories(${TARGET_LIB_FAISS} PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         $ENV{JAVA_HOME}/include
         $ENV{JAVA_HOME}/include/${JVM_OS_TYPE}
         ${CMAKE_CURRENT_SOURCE_DIR}/external/faiss
+        /usr/local/cuda/include
     )
     opensearch_set_common_properties(${TARGET_LIB_FAISS})
     list(APPEND TARGET_LIBS ${TARGET_LIB_FAISS})
