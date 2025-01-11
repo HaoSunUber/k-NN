@@ -88,12 +88,19 @@ jlong IndexService::initIndex(
     std::cout << "***** Hello the Hack for GPU *****" << std::endl;
     int runtimeVersion = 0;
     cudaError_t err = cudaRuntimeGetVersion(&runtimeVersion);
-    std::cout << "Failed to get CUDA runtime version: " << cudaGetErrorString(err) << std::endl;
-    // Print the versions
-    std::cout << "CUDA Runtime Version: " << runtimeVersion / 1000 << "."
-              << (runtimeVersion % 1000) / 10 << "."
-              << runtimeVersion % 10 << std::endl;
-    std::cout << "***** Done to print out CUDA runtime version *****" << std::endl;
+
+    int runtimeMajor = runtimeVersion / 1000;
+    int runtimeMinor = (runtimeVersion % 1000) / 10;
+    std::cout << "CUDA Runtime Version: " << runtimeMajor << "." << runtimeMinor << std::endl;
+
+    int driverVersion = 0;
+    err = cudaDriverGetVersion(&driverVersion);
+
+    int driverMajor = driverVersion / 1000;
+    int driverMinor = (driverVersion % 1000) / 10;
+    std::cout << "CUDA Driver Version: " << driverMajor << "." << driverMinor << std::endl;
+
+
 
     // Create index using Faiss factory method
     std::unique_ptr<faiss::Index> index(faissMethods->indexFactory(dim, indexDescription.c_str(), metric));
