@@ -76,6 +76,7 @@ public interface NativeMemoryLoadStrategy<T extends NativeMemoryAllocation, U ex
             // Ex: _0_165_my_field.faiss@1vaqiupVUwvkXAG4Qc/RPg==
             final String cacheKey = indexEntryContext.getKey();
             final String vectorFileName = NativeMemoryCacheKeyHelper.extractVectorIndexFileName(cacheKey);
+            log.info("**** NativeMemoryLoadStrategy.load with cacheKey: {} and vectorFileName: {}", cacheKey, vectorFileName);
             if (vectorFileName == null) {
                 throw new IllegalStateException(
                     "Invalid cache key was given. The key [" + cacheKey + "] does not contain the corresponding vector file name."
@@ -93,6 +94,10 @@ public interface NativeMemoryLoadStrategy<T extends NativeMemoryAllocation, U ex
                 final long indexAddress = JNIService.loadIndex(indexInputWithBuffer, indexEntryContext.getParameters(), knnEngine);
 
                 return createIndexAllocation(indexEntryContext, knnEngine, indexAddress, indexSizeKb, vectorFileName);
+            } catch (Exception e) {
+                // Catch other general exceptions (e.g., unexpected errors)
+                log.error("Unexpected error occurred while processing the index file: {}", vectorFileName, e);
+                throw new RuntimeException("Unexpected error during index processing", e);
             }
         }
 

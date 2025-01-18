@@ -18,6 +18,7 @@
 #include "faiss/IndexBinaryIVF.h"
 #include "faiss/IndexIDMap.h"
 #include "faiss/index_io.h"
+#include "faiss/gpu/utils/DeviceUtils.h"
 #include <algorithm>
 #include <string>
 #include <vector>
@@ -100,6 +101,8 @@ jlong IndexService::initIndex(
     int driverMinor = (driverVersion % 1000) / 10;
     std::cout << "CUDA Driver Version: " << driverMajor << "." << driverMinor << std::endl;
 
+    int num_devices = faiss::gpu::getNumDevices();
+    std::cout << "Number of GPUs available: " << num_devices << std::endl;
 
 
     // Create index using Faiss factory method
