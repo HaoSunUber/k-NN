@@ -1,0 +1,26 @@
+From fa0a839d3c4d11e5e4a590135cf1498a3b181f0e Mon Sep 17 00:00:00 2001
+From: JasonMrX <jiasenxu@gmail.com>
+Date: Wed, 22 Jan 2025 18:25:24 +0000
+Subject: [PATCH] Custom patch to fix a pointer reference issue on GPU code
+ after faiss 0002 patch
+
+---
+ faiss/gpu/GpuIndexIVFPQ.cu | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/faiss/gpu/GpuIndexIVFPQ.cu b/faiss/gpu/GpuIndexIVFPQ.cu
+index d39f036b..cbe21cd0 100644
+--- a/faiss/gpu/GpuIndexIVFPQ.cu
++++ b/faiss/gpu/GpuIndexIVFPQ.cu
+@@ -193,7 +193,7 @@ void GpuIndexIVFPQ::copyTo(faiss::IndexIVFPQ* index) const {
+     index->scan_table_threshold = 0;
+     index->max_codes = 0;
+     index->polysemous_ht = 0;
+-    index->precomputed_table.clear();
++    index->precomputed_table->clear();
+ 
+     auto ivf = new ArrayInvertedLists(nlist, index->code_size);
+     index->replace_invlists(ivf, true);
+-- 
+2.39.2
+
