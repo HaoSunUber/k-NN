@@ -114,7 +114,12 @@ if (${CONFIG_FAISS} STREQUAL ON OR ${CONFIG_ALL} STREQUAL ON OR ${CONFIG_TEST} S
         ${CMAKE_CURRENT_SOURCE_DIR}/src/faiss_index_service.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/faiss_methods.cpp
     )
-    target_link_libraries(${TARGET_LIB_FAISS} ${TARGET_LINK_FAISS_LIB} ${TARGET_LIB_UTIL} /usr/local/nvidia/lib64/libcuda.so OpenMP::OpenMP_CXX)
+    target_link_libraries(${TARGET_LIB_FAISS}
+        "$<LINK_LIBRARY:WHOLE_ARCHIVE,${TARGET_LINK_FAISS_LIB}>"
+        ${TARGET_LIB_UTIL}
+        /usr/local/nvidia/lib64/libcuda.so
+        OpenMP::OpenMP_CXX
+    )
     target_include_directories(${TARGET_LIB_FAISS} PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         $ENV{JAVA_HOME}/include

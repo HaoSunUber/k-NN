@@ -80,6 +80,9 @@ find_package(LAPACK REQUIRED)
 # Set relevant properties
 set(BUILD_TESTING OFF)          # Avoid building faiss tests
 set(FAISS_ENABLE_GPU ON)
+if(${FAISS_ENABLE_GPU} STREQUAL ON)
+    set(CMAKE_CUDA_COMPILER_LAUNCHER "ccache")
+endif()
 set(FAISS_ENABLE_PYTHON OFF)
 
 if(NOT DEFINED AVX2_ENABLED)
