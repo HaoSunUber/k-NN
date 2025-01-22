@@ -17,6 +17,7 @@ set(TARGET_LIB_COMMON opensearchknn_common)  # common lib for JNI
 set(TARGET_LIB_NMSLIB opensearchknn_nmslib)  # nmslib JNI
 set(TARGET_LIB_FAISS opensearchknn_faiss)    # faiss JNI
 set(TARGET_LIBS "")  # Libs to be installed
+set(raft_DIR "/home/user/miniconda3/envs/haos-test-11/lib/cmake/raft")
 
 # Specify the CUDA architecture as native
 set(CMAKE_CUDA_ARCHITECTURES "native")
@@ -117,7 +118,8 @@ if (${CONFIG_FAISS} STREQUAL ON OR ${CONFIG_ALL} STREQUAL ON OR ${CONFIG_TEST} S
         ${CMAKE_CURRENT_SOURCE_DIR}/src/faiss_index_service.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/faiss_methods.cpp
     )
-    target_link_libraries(${TARGET_LIB_FAISS} ${TARGET_LINK_FAISS_LIB} ${TARGET_LIB_UTIL} /usr/local/nvidia/lib64/libcuda.so OpenMP::OpenMP_CXX)
+    find_package(CUDAToolkit REQUIRED)
+    target_link_libraries(${TARGET_LIB_FAISS} ${TARGET_LINK_FAISS_LIB} ${TARGET_LIB_UTIL} /usr/local/nvidia/lib64/libcuda.so OpenMP::OpenMP_CXX CUDA::cudart)
     target_include_directories(${TARGET_LIB_FAISS} PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         $ENV{JAVA_HOME}/include

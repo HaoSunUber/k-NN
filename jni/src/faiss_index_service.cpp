@@ -18,6 +18,12 @@
 #include "faiss/IndexBinaryIVF.h"
 #include "faiss/IndexIDMap.h"
 #include "faiss/index_io.h"
+<<<<<<< Updated upstream
+=======
+#include "faiss/gpu/GpuIndexCagra.h"
+#include "faiss/gpu/GpuIndex.h"
+#include "faiss/gpu/StandardGpuResources.h"
+>>>>>>> Stashed changes
 #include "faiss/gpu/utils/DeviceUtils.h"
 #include <algorithm>
 #include <string>
@@ -101,36 +107,50 @@ jlong IndexService::initIndex(
     int driverMinor = (driverVersion % 1000) / 10;
     std::cout << "CUDA Driver Version: " << driverMajor << "." << driverMinor << std::endl;
 
+<<<<<<< Updated upstream
     int num_devices = faiss::gpu::getNumDevices();
     std::cout << "Number of GPUs available: " << num_devices << std::endl;
+=======
+    faiss::gpu::StandardGpuResources res;
+    res.noTempMemory();
+    faiss::gpu::GpuIndexCagraConfig config;
+    config.device = faiss::gpu::getNumDevices() - 1;
+    config.graph_degree = 32;
+    config.intermediate_graph_degree = 64;
+    config.build_algo = faiss::gpu::graph_build_algo::NN_DESCENT;
+
+    faiss::gpu::GpuIndexCagra gpuIndexTest(&res, dim, faiss::METRIC_L2, config);
+    faiss::IndexIDMap idMapIndex = faiss::IndexIDMap(&gpuIndexTest);
+    return reinterpret_cast<jlong>(idMapIndex.index);
+>>>>>>> Stashed changes
 
 
-    // Create index using Faiss factory method
-    std::unique_ptr<faiss::Index> index(faissMethods->indexFactory(dim, indexDescription.c_str(), metric));
-
-    // Set thread count if it is passed in as a parameter. Setting this variable will only impact the current thread
-    if(threadCount != 0) {
-        omp_set_num_threads(threadCount);
-    }
-
-    // Add extra parameters that cant be configured with the index factory
-    SetExtraParameters<faiss::Index, faiss::IndexIVF, faiss::IndexHNSW>(jniUtil, env, parameters, index.get());
-
-    // Check that the index does not need to be trained
-    if(!index->is_trained) {
-        throw std::runtime_error("Index is not trained");
-    }
-
-    std::unique_ptr<faiss::IndexIDMap> idMap (faissMethods->indexIdMap(index.get()));
-    //Makes sure the index is deleted when the destructor is called, this cannot be passed in the constructor
-    idMap->own_fields = true;
-
-    allocIndex(dynamic_cast<faiss::Index *>(idMap->index), dim, numVectors);
-
-    //Release the ownership so as to make sure not delete the underlying index that is created. The index is needed later
-    //in insert and write operations
-    index.release();
-    return reinterpret_cast<jlong>(idMap.release());
+//    // Create index using Faiss factory method
+//    std::unique_ptr<faiss::Index> index(faissMethods->indexFactory(dim, indexDescription.c_str(), metric));
+//
+//    // Set thread count if it is passed in as a parameter. Setting this variable will only impact the current thread
+//    if(threadCount != 0) {
+//        omp_set_num_threads(threadCount);
+//    }
+//
+//    // Add extra parameters that cant be configured with the index factory
+//    SetExtraParameters<faiss::Index, faiss::IndexIVF, faiss::IndexHNSW>(jniUtil, env, parameters, index.get());
+//
+//    // Check that the index does not need to be trained
+//    if(!index->is_trained) {
+//        throw std::runtime_error("Index is not trained");
+//    }
+//
+//    std::unique_ptr<faiss::IndexIDMap> idMap (faissMethods->indexIdMap(index.get()));
+//    //Makes sure the index is deleted when the destructor is called, this cannot be passed in the constructor
+//    idMap->own_fields = true;
+//
+//    allocIndex(dynamic_cast<faiss::Index *>(idMap->index), dim, numVectors);
+//
+//    //Release the ownership so as to make sure not delete the underlying index that is created. The index is needed later
+//    //in insert and write operations
+//    index.release();
+//    return reinterpret_cast<jlong>(idMap.release());
 }
 
 void IndexService::insertToIndex(
@@ -155,9 +175,9 @@ void IndexService::insertToIndex(
     }
 
     // Set thread count if it is passed in as a parameter. Setting this variable will only impact the current thread
-    if(threadCount != 0) {
-        omp_set_num_threads(threadCount);
-    }
+//    if(threadCount != 0) {
+//        omp_set_num_threads(threadCount);
+//    }
 
     faiss::IndexIDMap * idMap = reinterpret_cast<faiss::IndexIDMap *> (idMapAddress);
 
@@ -169,14 +189,29 @@ void IndexService::writeIndex(
         std::string indexPath,
         jlong idMapAddress
     ) {
-    std::unique_ptr<faiss::IndexIDMap> idMap (reinterpret_cast<faiss::IndexIDMap *> (idMapAddress));
 
+    faiss::IndexIDMap * idMapIndex (reinterpret_cast<faiss::IndexIDMap *> (idMapAddress));
+    faiss::IndexHNSWCagra cpuCagraIndex;
+    cpuCagraIndex.hnsw.efConstruction = 128;
+    faiss::gpu::GpuIndexCagra *mappedGpuIndex = dynamic_cast<faiss::gpu::GpuIndexCagra*>(idMapIndex->index);
+    mappedGpuIndex->copyTo(&cpuCagraIndex);
+    idMapIndex->index = &cpuCagraIndex;
+    auto *indexToBeWritten = dynamic_cast<faiss::Index*>(idMapIndex);
     try {
         // Write the index to disk
-        faissMethods->writeIndex(idMap.get(), indexPath.c_str());
+        faissMethods->writeIndex(indexToBeWritten, indexPath.c_str());
     } catch(std::exception &e) {
         throw std::runtime_error("Failed to write index to disk");
     }
+
+//    std::unique_ptr<faiss::IndexIDMap> idMap (reinterpret_cast<faiss::IndexIDMap *> (idMapAddress));
+//
+//    try {
+//        // Write the index to disk
+//        faissMethods->writeIndex(idMap.get(), indexPath.c_str());
+//    } catch(std::exception &e) {
+//        throw std::runtime_error("Failed to write index to disk");
+//    }
 }
 
 BinaryIndexService::BinaryIndexService(std::unique_ptr<FaissMethods> faissMethods) : IndexService(std::move(faissMethods)) {}
