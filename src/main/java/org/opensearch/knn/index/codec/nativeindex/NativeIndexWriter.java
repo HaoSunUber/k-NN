@@ -354,6 +354,7 @@ public class NativeIndexWriter {
         final KNNEngine knnEngine = extractKNNEngine(fieldInfo);
         boolean isTemplate = fieldInfo.attributes().containsKey(MODEL_ID);
         boolean iterative = !isTemplate && KNNEngine.FAISS == knnEngine;
+//        log.info("**** created the writer strategy. The iterative is {} ****", iterative);
         NativeIndexBuildStrategy strategy = iterative
             ? MemOptimizedNativeIndexBuildStrategy.getInstance()
             : DefaultIndexBuildStrategy.getInstance();

@@ -18,6 +18,9 @@ set(TARGET_LIB_NMSLIB opensearchknn_nmslib)  # nmslib JNI
 set(TARGET_LIB_FAISS opensearchknn_faiss)    # faiss JNI
 set(TARGET_LIBS "")  # Libs to be installed
 
+# Specify the CUDA architecture as native
+set(CMAKE_CUDA_ARCHITECTURES "native")
+
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 option(CONFIG_FAISS "Configure faiss library build when this is on")

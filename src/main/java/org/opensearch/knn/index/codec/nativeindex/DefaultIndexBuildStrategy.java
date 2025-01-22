@@ -7,6 +7,7 @@ package org.opensearch.knn.index.codec.nativeindex;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.opensearch.knn.common.KNNConstants;
 import org.opensearch.knn.index.codec.nativeindex.model.BuildIndexParams;
 import org.opensearch.knn.index.codec.transfer.OffHeapVectorTransfer;
@@ -29,6 +30,7 @@ import static org.opensearch.knn.index.codec.transfer.OffHeapVectorTransferFacto
 /**
  * Transfers all vectors to off heap and then builds an index
  */
+@Log4j2
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 final class DefaultIndexBuildStrategy implements NativeIndexBuildStrategy {
 
@@ -50,6 +52,7 @@ final class DefaultIndexBuildStrategy implements NativeIndexBuildStrategy {
      * @throws IOException     If an I/O error occurs during the process of building and writing the index.
      */
     public void buildAndWriteIndex(final BuildIndexParams indexInfo) throws IOException {
+//        log.info("**** Enter into DefaultIndexBuildStrategy ****");
         final KNNVectorValues<?> knnVectorValues = indexInfo.getVectorValues();
         // Needed to make sure we don't get 0 dimensions while initializing index
         iterateVectorValuesOnce(knnVectorValues);

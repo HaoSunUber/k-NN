@@ -11,6 +11,7 @@
 
 package org.opensearch.knn.jni;
 
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang.ArrayUtils;
 import org.opensearch.common.Nullable;
 import org.opensearch.knn.common.KNNConstants;
@@ -25,6 +26,7 @@ import java.util.Map;
 /**
  * Service to distribute requests to the proper engine jni service
  */
+@Log4j2
 public class JNIService {
     /**
      * Initialize an index for the native library. Takes in numDocs to
@@ -37,6 +39,7 @@ public class JNIService {
      * @return address of the index in memory
      */
     public static long initIndex(long numDocs, int dim, Map<String, Object> parameters, KNNEngine knnEngine) {
+        log.info("**** Enter into JNIService.initIndex with knnEngine = {} ****", knnEngine.getName());
         if (KNNEngine.FAISS == knnEngine) {
             if (IndexUtil.isBinaryIndex(knnEngine, parameters)) {
                 return FaissService.initBinaryIndex(numDocs, dim, parameters);
@@ -72,6 +75,7 @@ public class JNIService {
         long indexAddress,
         KNNEngine knnEngine
     ) {
+        log.info("**** Enter into JNIService.insertToIndex with knnEngine = {} ****", knnEngine.getName());
         int threadCount = (int) parameters.getOrDefault(KNNConstants.INDEX_THREAD_QTY, 0);
         if (KNNEngine.FAISS == knnEngine) {
             if (IndexUtil.isBinaryIndex(knnEngine, parameters)) {
@@ -98,6 +102,7 @@ public class JNIService {
      * @param parameters   parameters to build index
      */
     public static void writeIndex(String indexPath, long indexAddress, KNNEngine knnEngine, Map<String, Object> parameters) {
+        log.info("**** Enter into JNIService.writeIndex with knnEngine = {} ****", knnEngine.getName());
         if (KNNEngine.FAISS == knnEngine) {
             if (IndexUtil.isBinaryIndex(knnEngine, parameters)) {
                 FaissService.writeBinaryIndex(indexAddress, indexPath);
@@ -135,6 +140,7 @@ public class JNIService {
         Map<String, Object> parameters,
         KNNEngine knnEngine
     ) {
+        log.info("**** Enter into JNIService.createIndex with knnEngine = {} ****", knnEngine.getName());
         if (KNNEngine.NMSLIB == knnEngine) {
             NmslibService.createIndex(ids, vectorsAddress, dim, indexPath, parameters);
             return;
@@ -165,6 +171,7 @@ public class JNIService {
         Map<String, Object> parameters,
         KNNEngine knnEngine
     ) {
+//        log.info("**** Enter into JNIService.createIndexFromTemplate with knnEngine = {} ****", knnEngine.getName());
         if (KNNEngine.FAISS == knnEngine) {
             if (IndexUtil.isBinaryIndex(knnEngine, parameters)) {
                 FaissService.createBinaryIndexFromTemplate(ids, vectorsAddress, dim, indexPath, templateIndex, parameters);
@@ -194,6 +201,7 @@ public class JNIService {
      * @return pointer to location in memory the index resides in
      */
     public static long loadIndex(String indexPath, Map<String, Object> parameters, KNNEngine knnEngine) {
+        log.info("**** Enter into JNIService.loadIndex to memory with knnEngine = {} ****", knnEngine.getName());
         if (KNNEngine.NMSLIB == knnEngine) {
             return NmslibService.loadIndex(indexPath, parameters);
         }
@@ -220,6 +228,7 @@ public class JNIService {
      * @return Pointer to location in memory the index resides in
      */
     public static long loadIndex(IndexInputWithBuffer readStream, Map<String, Object> parameters, KNNEngine knnEngine) {
+        log.info("**** Enter into JNIService.loadIndex via Lucene with knnEngine = {} ****", knnEngine.getName());
         if (KNNEngine.FAISS == knnEngine) {
             if (IndexUtil.isBinaryIndex(knnEngine, parameters)) {
                 return FaissService.loadBinaryIndexWithStream(readStream);
@@ -308,6 +317,7 @@ public class JNIService {
         int filterIdsType,
         int[] parentIds
     ) {
+//        log.info("**** Enter into JNIService.queryIndex with knnEngine = {} ****", knnEngine.getName());
         if (KNNEngine.NMSLIB == knnEngine) {
             return NmslibService.queryIndex(indexPointer, queryVector, k, methodParameters);
         }
@@ -430,6 +440,7 @@ public class JNIService {
      * @return bytes array of trained template index
      */
     public static byte[] trainIndex(Map<String, Object> indexParameters, int dimension, long trainVectorsPointer, KNNEngine knnEngine) {
+        log.info("**** Enter into JNIService.trainIndex with knnEngine = {} ****", knnEngine.getName());
         if (KNNEngine.FAISS == knnEngine) {
             if (IndexUtil.isBinaryIndex(knnEngine, indexParameters)) {
                 return FaissService.trainBinaryIndex(indexParameters, dimension, trainVectorsPointer);

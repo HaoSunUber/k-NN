@@ -71,6 +71,7 @@ public class NativeEngines990KnnVectorsWriter extends KnnVectorsWriter {
      */
     @Override
     public KnnFieldVectorsWriter<?> addField(final FieldInfo fieldInfo) throws IOException {
+//        log.info("**** Add field {} in NativeEngines990KnnVectorsWriter **** ", fieldInfo);
         final NativeEngineFieldVectorsWriter<?> newField = NativeEngineFieldVectorsWriter.create(
             fieldInfo,
             flatVectorsWriter.addField(fieldInfo),
@@ -107,14 +108,15 @@ public class NativeEngines990KnnVectorsWriter extends KnnVectorsWriter {
             // Check only after quantization state writer finish writing its state, since it is required
             // even if there are no graph files in segment, which will be later used by exact search
 //            if (shouldSkipBuildingVectorDataStructure(totalLiveDocs)) {
-//                log.info(
-//                    "Skip building vector data structure for field: {}, as liveDoc: {} is less than the threshold {} during flush",
-//                    fieldInfo.name,
-//                    totalLiveDocs,
-//                    approximateThreshold
-//                );
+////                log.info(
+////                    "Skip building vector data structure for field: {}, as liveDoc: {} is less than the threshold {} during flush",
+////                    fieldInfo.name,
+////                    totalLiveDocs,
+////                        10000
+////                );
 //                continue;
 //            }
+            log.info("**** Total live docs: {} ****", totalLiveDocs);
             final NativeIndexWriter writer = NativeIndexWriter.getWriter(fieldInfo, segmentWriteState, quantizationState);
             final KNNVectorValues<?> knnVectorValues = knnVectorValuesSupplier.get();
 
@@ -290,6 +292,6 @@ public class NativeEngines990KnnVectorsWriter extends KnnVectorsWriter {
         if (approximateThreshold < 0) {
             return true;
         }
-        return docCount < approximateThreshold;
+        return docCount < 2000;
     }
 }

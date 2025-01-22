@@ -26,11 +26,15 @@
 #include "commons.h"
 #include "faiss/IndexBinaryIVF.h"
 #include "faiss/IndexBinaryHNSW.h"
+#include "faiss/gpu/GpuIndexIVFFlat.h"
+#include "faiss/gpu/StandardGpuResources.h"
 
 #include <algorithm>
 #include <jni.h>
 #include <string>
 #include <vector>
+#include <iostream>
+#include <ctime>
 
 // Defines type of IDSelector
 enum FilterIdsSelectorType{
@@ -186,6 +190,9 @@ void knn_jni::faiss_wrapper::WriteIndex(knn_jni::JNIUtilInterface * jniUtil, JNI
 void knn_jni::faiss_wrapper::CreateIndexFromTemplate(knn_jni::JNIUtilInterface * jniUtil, JNIEnv * env, jintArray idsJ,
                                                      jlong vectorsAddressJ, jint dimJ, jstring indexPathJ,
                                                      jbyteArray templateIndexJ, jobject parametersJ) {
+//    std::cout << "***** Enter into CreateByteIndexFromTemplate. Current time: " << std::time(nullptr) << std::endl;
+    // Get the start time
+    auto started = std::chrono::system_clock::now();
     if (idsJ == nullptr) {
         throw std::runtime_error("IDs cannot be null");
     }
@@ -239,15 +246,46 @@ void knn_jni::faiss_wrapper::CreateIndexFromTemplate(knn_jni::JNIUtilInterface *
     indexWriter.reset(faiss::read_index(&vectorIoReader, 0));
 
     auto idVector = jniUtil->ConvertJavaIntArrayToCppIntVector(env, idsJ);
-    faiss::IndexIDMap idMap =  faiss::IndexIDMap(indexWriter.get());
-    idMap.add_with_ids(numVectors, inputVectors->data(), idVector.data());
-    // Releasing the vectorsAddressJ memory as that is not required once we have created the index.
-    // This is not the ideal approach, please refer this gh issue for long term solution:
-    // https://github.com/opensearch-project/k-NN/issues/1600
-    delete inputVectors;
-    // Write the index to disk
-    std::string indexPathCpp(jniUtil->ConvertJavaStringToCppString(env, indexPathJ));
-    faiss::write_index(&idMap, indexPathCpp.c_str());
+    if (true) {
+        faiss::IndexIVFFlat* ivf_index_from_template = dynamic_cast<faiss::IndexIVFFlat*>(indexWriter.get());
+        faiss::gpu::StandardGpuResources gpu_resources;
+        faiss::gpu::GpuIndexIVFFlat* gpu_ivf_index = new faiss::gpu::GpuIndexIVFFlat(&gpu_resources, 1024, 4, faiss::METRIC_L2);
+        gpu_ivf_index->copyFrom(ivf_index_from_template);
+        faiss::IndexIDMap idMap =  faiss::IndexIDMap(gpu_ivf_index);
+        idMap.add_with_ids(numVectors, inputVectors->data(), idVector.data());
+
+        faiss::IndexIVFFlat cpu_ivf_index;
+        gpu_ivf_index->copyTo(&cpu_ivf_index);
+        idMap.index = &cpu_ivf_index;
+
+        delete inputVectors;
+        // Write the index to disk
+        std::string indexPathCpp(jniUtil->ConvertJavaStringToCppString(env, indexPathJ));
+        faiss::write_index(&idMap, indexPathCpp.c_str());
+
+        // Calculate the difference in milliseconds
+        auto indexingTotalDuration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - started);
+        std::cout << "**** GPU Index Construction took: " << indexingTotalDuration.count() << " milliseconds." << std::endl;
+        // Clean up the GPU index
+        delete gpu_ivf_index;  // Release GPU index memory
+    } else {
+        faiss::IndexIDMap idMap =  faiss::IndexIDMap(indexWriter.get());
+        idMap.add_with_ids(numVectors, inputVectors->data(), idVector.data());
+
+        auto pureCpuIndexDuration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - started);
+        std::cout << "Pure CPU Index Construction took: " << pureCpuIndexDuration.count() << " milliseconds." << std::endl;
+
+        // Releasing the vectorsAddressJ memory as that is not required once we have created the index.
+        // This is not the ideal approach, please refer this gh issue for long term solution:
+        // https://github.com/opensearch-project/k-NN/issues/1600
+        delete inputVectors;
+        // Write the index to disk
+        std::string indexPathCpp(jniUtil->ConvertJavaStringToCppString(env, indexPathJ));
+        faiss::write_index(&idMap, indexPathCpp.c_str());
+
+        auto indexingTotalDuration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - started);
+        std::cout << "CPU Index Construction took: " << indexingTotalDuration.count() << " milliseconds." << " Added vector count: " << numVectors << std::endl;
+    }
 }
 
 void knn_jni::faiss_wrapper::CreateBinaryIndexFromTemplate(knn_jni::JNIUtilInterface * jniUtil, JNIEnv * env, jintArray idsJ,
@@ -514,6 +552,7 @@ void knn_jni::faiss_wrapper::SetSharedIndexState(jlong indexPointerJ, jlong shar
 
 jobjectArray knn_jni::faiss_wrapper::QueryIndex(knn_jni::JNIUtilInterface * jniUtil, JNIEnv * env, jlong indexPointerJ,
                                                 jfloatArray queryVectorJ, jint kJ, jobject methodParamsJ, jintArray parentIdsJ) {
+    std::cout << "***** Enter into QueryIndex *****" << std::endl;
     return knn_jni::faiss_wrapper::QueryIndex_WithFilter(jniUtil, env, indexPointerJ, queryVectorJ, kJ, methodParamsJ, nullptr, 0, parentIdsJ);
 }
 

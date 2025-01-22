@@ -11,6 +11,7 @@
 
 package org.opensearch.knn.index.codec.KNN990Codec;
 
+import lombok.extern.log4j.Log4j2;
 import org.apache.lucene.codecs.KnnVectorsFormat;
 import org.apache.lucene.codecs.KnnVectorsReader;
 import org.apache.lucene.codecs.KnnVectorsWriter;
@@ -27,6 +28,7 @@ import java.io.IOException;
  * This is a Vector format that will be used for Native engines like Faiss and Nmslib for reading and writing vector
  * related data structures.
  */
+@Log4j2
 public class NativeEngines990KnnVectorsFormat extends KnnVectorsFormat {
     /** The format for storing, reading, merging vectors on disk */
     private static FlatVectorsFormat flatVectorsFormat;
@@ -47,6 +49,7 @@ public class NativeEngines990KnnVectorsFormat extends KnnVectorsFormat {
 
     public NativeEngines990KnnVectorsFormat(final FlatVectorsFormat flatVectorsFormat, int approximateThreshold) {
         super(FORMAT_NAME);
+//        log.info("**** Create NativeEngines990KnnVectorsFormat ****");
         NativeEngines990KnnVectorsFormat.flatVectorsFormat = flatVectorsFormat;
         NativeEngines990KnnVectorsFormat.approximateThreshold = approximateThreshold;
     }
@@ -58,6 +61,7 @@ public class NativeEngines990KnnVectorsFormat extends KnnVectorsFormat {
      */
     @Override
     public KnnVectorsWriter fieldsWriter(final SegmentWriteState state) throws IOException {
+//        log.info("**** Create NativeEngines990KnnVectorsWriter ****");
         return new NativeEngines990KnnVectorsWriter(state, flatVectorsFormat.fieldsWriter(state), approximateThreshold);
     }
 
